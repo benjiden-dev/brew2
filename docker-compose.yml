@@ -1,0 +1,43 @@
+services:
+  brew2:
+    build: .
+    image: brew2:latest
+    container_name: brew2
+    restart: unless-stopped
+
+    # User Isolation
+    # 101 is the nginx user in nginx-unprivileged image
+    user: "101:101"
+
+    # Network Isolation
+    # Map internal 8080 to host 8090 (or whatever preference)
+    ports:
+      - "8090:8080"
+
+    # Security Hardening
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    # Filesystem: Nginx needs write access to these temporary locations
+    # Since root is read-only, we must mount tmpfs
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+
+    # Health Check
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    # Resource Limits (Optional but good practice)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
