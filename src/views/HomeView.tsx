@@ -21,7 +21,7 @@ const IconCelsius = ({ className }: { className?: string }) => (
     </svg>
 )
 import { Button } from "@/components/ui/button"
-import { Plus, Coffee, Info, Trash2, Edit, Github } from "lucide-react"
+import { Plus, Coffee, Info, Trash2, Edit, Github, RotateCcw } from "lucide-react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Linkify } from "@/components/Linkify"
@@ -83,7 +83,13 @@ export function HomeView() {
     return (
         <div className="flex h-full flex-col p-4 max-w-md mx-auto relative">
             <header className="flex items-center justify-between py-3">
-                <h1 className="text-3xl font-bold tracking-tight">brew2</h1>
+                <button 
+                    className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+                    onClick={() => window.location.reload()}
+                >
+                    <h1 className="text-3xl font-bold tracking-tight">brew2</h1>
+                    <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                </button>
                 <div className="flex items-center gap-4">
                     <ModeToggle />
                     <Button variant="ghost" size="icon" onClick={toggleTempUnit} className="border-2 border-border/75 rounded-lg">
@@ -266,7 +272,11 @@ function RecipeCard({ recipe, onClick, onStart }: { recipe: Recipe; onClick: () 
     )
 }
 
+import { useIosInstallPrompt } from "@/hooks/useIosInstallPrompt"
+
 function InfoDrawer() {
+    const { isIOS, isStandalone, hasDismissed, hasSnoozed, reset } = useIosInstallPrompt()
+    
     return (
         <Drawer>
             <DrawerTrigger asChild>
@@ -277,12 +287,15 @@ function InfoDrawer() {
             <DrawerContent>
                 <div className="mx-auto w-full max-w-sm">
                     <DrawerHeader>
-                        <DrawerTitle>About brew2</DrawerTitle>
+                        <div className="flex items-center justify-between">
+                            <DrawerTitle>About brew2</DrawerTitle>
+                            <span className="text-xs text-muted-foreground font-mono">v0.0.1 (3)</span>
+                        </div>
                         <DrawerDescription>
                             A modern, open-source coffee timer. Designed for precision brewing with a mobile-first experience. Data stored locally on your device.
                         </DrawerDescription>
                     </DrawerHeader>
-                    <div className="px-4 pb-4">
+                    <div className="px-4 pb-4 space-y-4">
                         <div className="flex items-center justify-between pt-4 border-t">
                             <div className="space-y-1">
                                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attribution</h4>
@@ -304,6 +317,22 @@ function InfoDrawer() {
                                         <Coffee className="h-5 w-5" />
                                     </Button>
                                 </a>
+                            </div>
+                        </div>
+
+                        {/* Debug Info */}
+                        <div className="space-y-2 pt-2 border-t">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Debug</h4>
+                                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={reset}>
+                                    Reset Prompts
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-muted-foreground">
+                                <div>iOS: {isIOS ? 'Yes' : 'No'}</div>
+                                <div>Standalone: {isStandalone ? 'Yes' : 'No'}</div>
+                                <div>Dismissed: {hasDismissed ? 'Yes' : 'No'}</div>
+                                <div>Snoozed: {hasSnoozed ? 'Yes' : 'No'}</div>
                             </div>
                         </div>
                     </div>

@@ -220,11 +220,21 @@ export function EditRecipeView() {
                                     <div className="flex items-center border rounded-md overflow-hidden">
                                         <button
                                             className={`px-2 py-0.5 text-xs ${tempUnit === 'C' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}
-                                            onClick={() => setTempUnit('C')}
+                                            onClick={() => {
+                                                if (tempUnit === 'F') {
+                                                    setTempUnit('C')
+                                                    setTemp(Math.round((temp - 32) * 5 / 9))
+                                                }
+                                            }}
                                         >°C</button>
                                         <button
                                             className={`px-2 py-0.5 text-xs ${tempUnit === 'F' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}
-                                            onClick={() => setTempUnit('F')}
+                                            onClick={() => {
+                                                if (tempUnit === 'C') {
+                                                    setTempUnit('F')
+                                                    setTemp(Math.round((temp * 9 / 5) + 32))
+                                                }
+                                            }}
                                         >°F</button>
                                     </div>
                                 </div>
@@ -279,6 +289,7 @@ export function EditRecipeView() {
                                                 <option value="stir">Stir</option>
                                                 <option value="add">Add Coffee</option>
                                                 <option value="filter">Rinse Filter</option>
+                                                <option value="press">Press</option>
                                             </select>
                                         </div>
                                         <div className="space-y-2">
@@ -293,7 +304,7 @@ export function EditRecipeView() {
                                             <Label>Amount (g)</Label>
                                             <Input
                                                 type="number"
-                                                disabled={['wait', 'bloom', 'swirl', 'stir', 'filter'].includes(step.type)}
+                                                disabled={['wait', 'bloom', 'swirl', 'stir', 'filter', 'press'].includes(step.type)}
                                                 value={step.amount || 0}
                                                 onChange={(e) => updateStep(index, 'amount', Number(e.target.value))}
                                             />

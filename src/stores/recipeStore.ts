@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type StepType = 'pour' | 'wait' | 'bloom' | 'swirl' | 'stir' | 'filter' | 'add';
+export type StepType = 'pour' | 'wait' | 'bloom' | 'swirl' | 'stir' | 'filter' | 'add' | 'press';
 
 export interface BrewingStep {
     type: StepType;

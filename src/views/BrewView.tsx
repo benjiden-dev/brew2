@@ -256,6 +256,7 @@ function getDefaultInstruction(type: string, amount?: number) {
         case 'wait': return 'Wait for the drawdown.'
         case 'swirl': return 'Gently swirl the brewer.'
         case 'stir': return 'Stir the grounds.'
+        case 'press': return 'Press down the plunger gently.'
         default: return 'Follow the step instructions.'
     }
 }
