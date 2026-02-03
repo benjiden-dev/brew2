@@ -32,7 +32,7 @@ EXPOSE 8080
 # actually let's skip complex healthcheck instruction inside Dockerfile to keep it light, 
 # or use wget which comes with alpine)
 HEALTHCHECK --interval=30s --timeout=3s \
-    CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
+    CMD wget --quiet --tries=1 --spider http://127.0.0.1:8080/health || exit 1
 
 # Run as non-root is default in this image, but being explicit doesn't hurt
 USER 101

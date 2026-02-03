@@ -3,6 +3,7 @@ import { HomeView } from "@/views/HomeView"
 import { BrewView } from "@/views/BrewView"
 import { EditRecipeView } from "@/views/EditRecipeView"
 import { ThemeProvider } from "@/components/theme-provider"
+import { IosInstallPrompt } from "@/components/IosInstallPrompt"
 
 export default function App() {
   const { currentView } = useUiStore()
@@ -14,6 +15,7 @@ export default function App() {
           {currentView === 'home' && <HomeView />}
           {currentView === 'brew' && <BrewView />}
           {currentView === 'edit' && <EditRecipeView />}
+          <IosInstallPrompt />
         </div>
       </div>
     </ThemeProvider>

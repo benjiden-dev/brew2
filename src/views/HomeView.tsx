@@ -22,7 +22,7 @@ const IconCelsius = ({ className }: { className?: string }) => (
 )
 import { Button } from "@/components/ui/button"
 import { Plus, Coffee, Info, Trash2, Edit, Github } from "lucide-react"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Linkify } from "@/components/Linkify"
 
@@ -110,7 +110,7 @@ export function HomeView() {
                     <div className="border rounded-xl p-4 md:p-8 bg-secondary/10 relative">
                         <Carousel
                             opts={{
-                                align: "start",
+                                align: "center",
                                 loop: true,
                             }}
                             className="w-full"
@@ -132,8 +132,8 @@ export function HomeView() {
                                 ))}
                             </CarouselContent>
                             <div className="hidden sm:block">
-                                <CarouselPrevious />
-                                <CarouselNext />
+                                <CarouselPrevious className="-left-4 bg-background/80 hover:bg-background border-primary/20" />
+                                <CarouselNext className="-right-4 bg-background/80 hover:bg-background border-primary/20" />
                             </div>
                         </Carousel>
                     </div>
@@ -282,7 +282,7 @@ function InfoDrawer() {
                             A modern, open-source coffee timer. Designed for precision brewing with a mobile-first experience. Data stored locally on your device.
                         </DrawerDescription>
                     </DrawerHeader>
-                    <div className="p-4">
+                    <div className="px-4 pb-4">
                         <div className="flex items-center justify-between pt-4 border-t">
                             <div className="space-y-1">
                                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Attribution</h4>
@@ -300,18 +300,13 @@ function InfoDrawer() {
                                     </Button>
                                 </a>
                                 <a href="https://buymeacoffee.com/fx5s2fycm9w" target="_blank" rel="noopener noreferrer" title="Buy me a coffee">
-                                    <Button variant="outline" size="icon" className="h-9 w-9 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-amber-200 dark:border-amber-900">
+                                    <Button variant="outline" size="icon" className="h-9 w-9 text-blue-900 border-blue-900 hover:bg-blue-50 dark:text-amber-600 dark:border-amber-600 dark:hover:bg-amber-950/30">
                                         <Coffee className="h-5 w-5" />
                                     </Button>
                                 </a>
                             </div>
                         </div>
                     </div>
-                    <DrawerFooter>
-                        <DrawerClose asChild>
-                            <Button variant="ghost">Close</Button>
-                        </DrawerClose>
-                    </DrawerFooter>
                 </div>
             </DrawerContent>
         </Drawer>

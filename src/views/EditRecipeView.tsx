@@ -34,10 +34,19 @@ export function EditRecipeView() {
     const [temp, setTemp] = useState(activeRecipe?.ingredients.temp || 95)
     const [tempUnit, setTempUnit] = useState<'C' | 'F'>(activeRecipe?.ingredients.tempUnit || 'C')
     const [steps, setSteps] = useState<BrewingStep[]>(activeRecipe?.steps || [])
+    const [error, setError] = useState<string | null>(null)
 
     const handleSave = () => {
-        if (!title) return alert("Please enter a title")
-        if (steps.length === 0) return alert("Please add at least one step")
+        if (!title) {
+            setError("Please enter a title")
+            setTimeout(() => setError(null), 3000)
+            return
+        }
+        if (steps.length === 0) {
+            setError("Please add at least one step")
+            setTimeout(() => setError(null), 3000)
+            return
+        }
 
         const totalTime = steps.reduce((acc, s) => acc + s.time, 0)
 
@@ -89,6 +98,12 @@ export function EditRecipeView() {
                     </Button>
                 </div>
             </header>
+            
+            {error && (
+                <div className="bg-destructive/15 text-destructive text-sm font-medium px-4 py-2 text-center animate-in fade-in slide-in-from-top-1">
+                    {error}
+                </div>
+            )}
 
             <ScrollArea className="flex-1">
                 <div className="p-6 space-y-8">
