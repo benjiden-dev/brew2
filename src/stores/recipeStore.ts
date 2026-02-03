@@ -111,7 +111,7 @@ export const useRecipeStore = create<RecipeState>()(
             getActiveRecipe: () => get().recipes.find((r) => r.id === get().activeRecipeId),
         }),
         {
-            name: 'brew-recipe-storage',
+            name: 'brew-recipe-storage-v2',
             storage: createJSONStorage(() => localStorage),
         }
     )

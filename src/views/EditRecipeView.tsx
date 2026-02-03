@@ -12,6 +12,8 @@ import { ArrowLeft, Plus, Save, X } from "lucide-react"
 
 import { ModeToggle } from "@/components/mode-toggle"
 
+const COMMON_METHODS = ["V60", "Aeropress", "French Press", "Kalita Wave", "Chemex", "Switch", "Moka Pot", "Espresso"]
+
 export function EditRecipeView() {
     // ... existing hooks
     const { addRecipe, updateRecipe, getActiveRecipe } = useRecipeStore() // Need updateRecipe exposed or we can modify store
@@ -23,6 +25,8 @@ export function EditRecipeView() {
 
     // Initial state based on editing or new
     const [title, setTitle] = useState(activeRecipe?.title || "")
+    const [method, setMethod] = useState(activeRecipe?.method || "V60")
+    const [isCustomMethod, setIsCustomMethod] = useState(!COMMON_METHODS.includes(activeRecipe?.method || "V60"))
     const [notes, setNotes] = useState(activeRecipe?.notes || "")
     const [coffee, setCoffee] = useState(activeRecipe?.ingredients.coffee || 20)
     const [water, setWater] = useState(activeRecipe?.ingredients.water || 300)
@@ -41,6 +45,7 @@ export function EditRecipeView() {
             id: isEditing ? activeRecipe.id : crypto.randomUUID(),
             name: title.toLowerCase().replace(/\s+/g, '-'),
             title,
+            method,
             notes,
             ingredients: { coffee, water, grind, temp, time: totalTime, tempUnit } as any,
             steps
@@ -100,6 +105,43 @@ export function EditRecipeView() {
                         </div>
 
                         <div className="space-y-2">
+                            <Label>Method</Label>
+                            {isCustomMethod ? (
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={method}
+                                        onChange={(e) => setMethod(e.target.value)}
+                                        placeholder="Custom Method (e.g. Siphon)"
+                                    />
+                                    <Button variant="ghost" size="icon" onClick={() => {
+                                        setIsCustomMethod(false)
+                                        setMethod(COMMON_METHODS[0])
+                                    }}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <select
+                                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                                    value={method}
+                                    onChange={(e) => {
+                                        if (e.target.value === 'custom') {
+                                            setIsCustomMethod(true)
+                                            setMethod("")
+                                        } else {
+                                            setMethod(e.target.value)
+                                        }
+                                    }}
+                                >
+                                    {COMMON_METHODS.map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                    ))}
+                                    <option value="custom">Custom...</option>
+                                </select>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
                             <Label>Details / Notes (Links supported)</Label>
                             <Textarea
                                 placeholder="E.g. Check http://example.com for video..."
@@ -143,7 +185,7 @@ export function EditRecipeView() {
 
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-3">
-                                <Label>Grind Size (1-10)</Label>
+                                <Label>Grind Size (1-41)</Label>
                                 <Input
                                     type="number"
                                     value={grind}
@@ -175,6 +217,13 @@ export function EditRecipeView() {
                                     type="number"
                                     value={temp}
                                     onChange={(e) => setTemp(Number(e.target.value))}
+                                />
+                                <Slider
+                                    value={[temp]}
+                                    min={tempUnit === 'C' ? 75 : 165}
+                                    max={tempUnit === 'C' ? 100 : 212}
+                                    step={1}
+                                    onValueChange={(v) => setTemp(v[0])}
                                 />
                             </div>
                         </div>
