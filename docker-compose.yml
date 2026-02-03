@@ -10,9 +10,9 @@ services:
     user: "101:101"
 
     # Network Isolation
-    # Map internal 8080 to host 8090 (or whatever preference)
+    # Map internal 8080 to host via BREW_PORT (default 8090)
     ports:
-      - "8090:8080"
+      - "${BREW_PORT:-8090}:8080"
 
     # Security Hardening
     read_only: true

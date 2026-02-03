@@ -17,7 +17,7 @@ import { Linkify } from "@/components/Linkify"
 
 export function HomeView() {
     const { recipes, setActiveRecipe, deleteRecipe } = useRecipeStore()
-    const { setView } = useUiStore()
+    const { setView, tempUnit, toggleTempUnit } = useUiStore()
 
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
     const [isDetailsOpen, setIsDetailsOpen] = useState(false)
@@ -75,6 +75,9 @@ export function HomeView() {
                 <h1 className="text-3xl font-bold tracking-tight">brew2</h1>
                 <div className="flex items-center gap-2">
                     <ModeToggle />
+                    <Button variant="ghost" size="icon" onClick={toggleTempUnit} className="w-10">
+                        <span className="font-light lowercase text-lg">{tempUnit}°</span>
+                    </Button>
                     <InfoDrawer />
                     <Button variant="ghost" size="icon" onClick={handleCreate} className="border-2 border-border/75 rounded-lg">
                         <Plus className="h-6 w-6" />
@@ -127,32 +130,26 @@ export function HomeView() {
             <Drawer open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DrawerContent>
                     <div className="mx-auto w-full max-w-sm">
-                        <DrawerHeader>
-                            <DrawerTitle className="text-2xl">{selectedRecipe?.title}</DrawerTitle>
-                            <div className="text-muted-foreground text-sm mt-2">
+                        <DrawerHeader className="pb-2">
+                            <div className="flex justify-between items-start gap-2">
+                                <DrawerTitle className="text-2xl text-left">{selectedRecipe?.title}</DrawerTitle>
+                                {selectedRecipe?.method && (
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap mt-1">
+                                        {selectedRecipe.method}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="text-muted-foreground text-sm text-left">
                                 <Linkify>{selectedRecipe?.notes || ""}</Linkify>
                             </div>
                         </DrawerHeader>
-                        <div className="p-4 space-y-6">
+                        <div className="p-4 pt-2 space-y-4">
                             {/* Ingredients Summary */}
                             {selectedRecipe && (
-                                <div className="grid grid-cols-3 gap-2 text-center bg-secondary/30 p-4 rounded-lg">
-                                    <div>
-                                        <div className="text-xl font-bold">{selectedRecipe.ingredients.coffee}g</div>
-                                        <div className="text-xs uppercase text-muted-foreground">Coffee</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xl font-bold">{selectedRecipe.ingredients.water}g</div>
-                                        <div className="text-xs uppercase text-muted-foreground">Water</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xl font-bold">{selectedRecipe.ingredients.temp}°{selectedRecipe.ingredients.tempUnit || 'C'}</div>
-                                        <div className="text-xs uppercase text-muted-foreground">Temp</div>
-                                    </div>
-                                </div>
+                                <RecipeStats recipe={selectedRecipe} />
                             )}
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-3 pt-2">
                                 <Button onClick={handleStartBrew} className="col-span-2 h-12 text-lg" size="lg">
                                     <Coffee className="mr-2 h-5 w-5" /> Start Brew
                                 </Button>
@@ -169,11 +166,7 @@ export function HomeView() {
                                 </Button>
                             </div>
                         </div>
-                        <DrawerFooter>
-                            <DrawerClose asChild>
-                                <Button variant="ghost">Cancel</Button>
-                            </DrawerClose>
-                        </DrawerFooter>
+
                     </div>
                 </DrawerContent>
             </Drawer>
@@ -182,37 +175,61 @@ export function HomeView() {
     )
 }
 
-function RecipeCard({ recipe, onClick, onStart }: { recipe: Recipe; onClick: () => void; onStart: () => void }) {
+function RecipeStats({ recipe }: { recipe: Recipe }) {
+    const { tempUnit } = useUiStore()
     const totalWater = recipe.ingredients.water
+
+    const displayTemp = (() => {
+        const recipeTemp = recipe.ingredients.temp
+        const recipeUnit = (recipe.ingredients as any).tempUnit || 'C'
+
+        if (tempUnit === recipeUnit) return recipeTemp
+        if (tempUnit === 'F') return Math.round((recipeTemp * 9 / 5) + 32)
+        return Math.round((recipeTemp - 32) * 5 / 9)
+    })()
+
+    return (
+        <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
+                <span className="text-lg font-bold">{recipe.ingredients.coffee}g</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Coffee</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
+                <span className="text-lg font-bold">{totalWater}ml</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Water</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
+                <div className="flex items-center gap-1">
+                    <span className="text-lg font-bold">{displayTemp}°</span>
+                    <span className="text-xs text-muted-foreground">{tempUnit}</span>
+                </div>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Temp</span>
+            </div>
+        </div>
+    )
+}
+
+function RecipeCard({ recipe, onClick, onStart }: { recipe: Recipe; onClick: () => void; onStart: () => void }) {
     const ratio = Math.round(recipe.ingredients.water / recipe.ingredients.coffee)
 
     return (
         <div onClick={onClick} className="cursor-pointer h-full transition-transform active:scale-[0.98]">
             <Card className="h-full border-none shadow-xl bg-card/50 backdrop-blur-sm ring-1 ring-border/50 hover:bg-card/80 transition-colors">
                 <CardHeader>
-                    <CardTitle className="text-2xl leading-tight">{recipe.title}</CardTitle>
+                    <div className="flex justify-between items-start gap-2">
+                        <CardTitle className="text-2xl leading-tight">{recipe.title}</CardTitle>
+                        {recipe.method && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap">
+                                {recipe.method}
+                            </span>
+                        )}
+                    </div>
                     <CardDescription className="line-clamp-2 min-h-[2.5em]">
                         {recipe.notes || "No notes"}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6">
-                    <div className="grid grid-cols-3 gap-2">
-                        <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
-                            <span className="text-lg font-bold">{recipe.ingredients.coffee}g</span>
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Coffee</span>
-                        </div>
-                        <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
-                            <span className="text-lg font-bold">{totalWater}ml</span>
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Water</span>
-                        </div>
-                        <div className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/40 bg-secondary/10">
-                            <div className="flex items-center gap-1">
-                                <span className="text-lg font-bold">{recipe.ingredients.temp}°</span>
-                                <span className="text-xs text-muted-foreground">{(recipe.ingredients as any).tempUnit || 'C'}</span>
-                            </div>
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Temp</span>
-                        </div>
-                    </div>
+                    <RecipeStats recipe={recipe} />
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                         <span className="border px-2 py-0.5 rounded-full bg-background">1:{ratio}</span>

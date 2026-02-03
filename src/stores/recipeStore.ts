@@ -23,6 +23,7 @@ export interface Recipe {
     id: string; // generated UUID
     name: string; // internal slug
     title: string;
+    method?: string;
     notes?: string;
     ingredients: Ingredients;
     steps: BrewingStep[];
@@ -40,54 +41,10 @@ interface RecipeState {
 
 const INITIAL_RECIPES: Recipe[] = [
     {
-        id: "boring-v60",
-        name: "boring",
-        title: "Boring V60",
-        ingredients: {
-            coffee: 20,
-            water: 300,
-            grind: 5,
-            temp: 94,
-            time: 160
-        },
-        steps: [
-            { type: "pour", amount: 40, time: 10 },
-            { type: "bloom", time: 20 },
-            { type: "pour", amount: 150, time: 45 },
-            { type: "wait", time: 10 },
-            { type: "pour", amount: 110, time: 45 },
-            { type: "wait", time: 30 }
-        ]
-    },
-    {
-        id: "tetsu-kasuya",
-        name: "tetsu-kasuya",
-        title: "Tetsu Kasuya 4:6",
-        notes: "More info: https://en.philocoffea.com/blogs/blog/coffee-brewing-method",
-        ingredients: {
-            coffee: 20,
-            water: 300,
-            grind: 7,
-            temp: 92,
-            time: 210
-        },
-        steps: [
-            { type: "pour", amount: 60, time: 5 },
-            { type: "wait", time: 40 },
-            { type: "pour", amount: 60, time: 5 },
-            { type: "wait", time: 40 },
-            { type: "pour", amount: 60, time: 5 },
-            { type: "wait", time: 40 },
-            { type: "pour", amount: 60, time: 5 },
-            { type: "wait", time: 25 },
-            { type: "pour", amount: 60, time: 5 },
-            { type: "wait", time: 40 }
-        ]
-    },
-    {
         id: "james-hoffmann",
         name: "james-hoffmann",
         title: "James Hoffmann V60",
+        method: "V60",
         notes: "Details: https://www.youtube.com/watch?v=AI4ynXzkSQo",
         ingredients: {
             coffee: 30,
@@ -108,6 +65,32 @@ const INITIAL_RECIPES: Recipe[] = [
             { type: "wait", notes: "Allow V60 to drain a little", time: 10 },
             { type: "swirl", notes: "Give V60 a gentle swirl", time: 5 },
             { type: "wait", notes: "Let brew draw down. Aim to finish by t = 3:30", time: 85 }
+        ]
+    },
+    {
+        id: "tetsu-kasuya",
+        name: "tetsu-kasuya",
+        title: "Tetsu Kasuya 4:6",
+        method: "V60",
+        notes: "More info: https://en.philocoffea.com/blogs/blog/coffee-brewing-method",
+        ingredients: {
+            coffee: 20,
+            water: 300,
+            grind: 7,
+            temp: 92,
+            time: 210
+        },
+        steps: [
+            { type: "pour", amount: 60, time: 5 },
+            { type: "wait", time: 40 },
+            { type: "pour", amount: 60, time: 5 },
+            { type: "wait", time: 40 },
+            { type: "pour", amount: 60, time: 5 },
+            { type: "wait", time: 40 },
+            { type: "pour", amount: 60, time: 5 },
+            { type: "wait", time: 25 },
+            { type: "pour", amount: 60, time: 5 },
+            { type: "wait", time: 40 }
         ]
     }
 ]
