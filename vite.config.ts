@@ -18,7 +18,7 @@ export default defineConfig({
         enabled: true,
         type: 'module',
       },
-      includeAssets: ['favicon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'icon.svg', 'notify.wav'],
+      includeAssets: ['favicon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'apple-touch-icon.png', 'notify.wav', 'fav2.png'],
       manifest: {
         name: 'brew2',
         short_name: 'brew2',

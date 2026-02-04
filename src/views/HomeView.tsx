@@ -356,7 +356,7 @@ function InfoDrawer() {
                     <DrawerHeader>
                         <div className="flex items-center justify-between">
                             <DrawerTitle>About brew2</DrawerTitle>
-                            <span className="text-xs text-muted-foreground font-mono">0.0.1(16)</span>
+                            <span className="text-xs text-muted-foreground font-mono">0.0.1(17)</span>
                         </div>
                         <DrawerDescription>
                             A modern, open-source coffee timer. Designed for precision brewing with a mobile-first experience. Data stored locally on your device.

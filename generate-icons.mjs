@@ -3,31 +3,35 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-const svgPath = path.join(process.cwd(), 'public', 'icon.svg');
+const sourcePath = path.join(process.cwd(), 'public', 'fav2.png');
 const publicDir = path.join(process.cwd(), 'public');
 
 async function generate() {
-    console.log('Generating icons from', svgPath);
+    console.log('Generating icons from', sourcePath);
 
     // 192x192
-    await sharp(svgPath)
+    await sharp(sourcePath)
         .resize(192, 192)
         .png()
         .toFile(path.join(publicDir, 'pwa-192x192.png'));
 
     // 512x512
-    await sharp(svgPath)
+    await sharp(sourcePath)
         .resize(512, 512)
         .png()
         .toFile(path.join(publicDir, 'pwa-512x512.png'));
 
-    // Favicon (32x32?) or just keep svg. 
-    // Let's make an ico just in case? No, modern browsers use SVG or PNG.
-    // Let's make a 64x64 PNG for good measure.
-    await sharp(svgPath)
+    // Favicon
+    await sharp(sourcePath)
         .resize(64, 64)
         .png()
         .toFile(path.join(publicDir, 'favicon.png'));
+
+    // Apple Touch Icon (180x180)
+    await sharp(sourcePath)
+        .resize(180, 180)
+        .png()
+        .toFile(path.join(publicDir, 'apple-touch-icon.png'));
 
     console.log('Icons generated!');
 }
