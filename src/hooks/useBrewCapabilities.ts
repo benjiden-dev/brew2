@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { native } from '@/lib/native'
 
 export function useBrewAudio() {
     const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -16,9 +17,7 @@ export function useBrewAudio() {
         }
 
         // Haptic feedback
-        if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
-        }
+        native.vibrate();
     }
 
     return { playNotify }

@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useRecipeStore } from "@/stores/recipeStore"
 import { useUiStore } from "@/stores/uiStore"
 import { useBrewAudio, useWakeLock } from "@/hooks/useBrewCapabilities"
+import { native } from "@/lib/native"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { ArrowLeft, Play, Pause, SkipForward, CheckCircle, Volume2, VolumeX } from "lucide-react"
@@ -26,25 +27,20 @@ export function BrewView() {
         return stored === 'true'
     })
 
-    const timerRef = useRef<number | null>(null)
+    // Timestamp-based timer state
+    const [deadline, setDeadline] = useState<number | null>(null)
 
-    if (!recipe) {
-        return (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
-                <p>Error: No recipe selected</p>
-                <Button onClick={() => setView('home')}>Go Home</Button>
-            </div>
-        )
-    }
-
-    const currentStep = recipe.steps[stepIndex]
-    const nextStep = recipe.steps[stepIndex + 1]
-    const totalSteps = recipe.steps.length
+    const currentStep = recipe ? recipe.steps[stepIndex] : null
+    const nextStep = recipe ? recipe.steps[stepIndex + 1] : null
+    const totalSteps = recipe ? recipe.steps.length : 0
 
     // Initialize/Update step time
     useEffect(() => {
         if (!currentStep) {
-            setIsFinished(true)
+            if (recipe) {
+                // Safety net: ensure we finish if step is invalid
+                setTimeout(() => setIsFinished(true), 0);
+            }
             return
         }
 
@@ -52,32 +48,18 @@ export function BrewView() {
         if (currentStep.time === undefined) {
             setIsWaitingForContinue(true)
             setIsPaused(false)
+            setDeadline(null)
         } else {
             setTimeLeft(currentStep.time)
+            setDeadline(null)
             setIsPaused(false)
             setIsWaitingForContinue(false)
         }
-    }, [stepIndex, currentStep])
-
-    // Timer Logic
-    useEffect(() => {
-        if (!hasStarted || isPaused || isFinished || isWaitingForContinue) return
-
-        if (timeLeft > 0) {
-            timerRef.current = window.setTimeout(() => {
-                setTimeLeft((prev) => prev - 1)
-            }, 1000)
-        } else {
-            handleStepComplete()
-        }
-
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current)
-        }
-    }, [timeLeft, isPaused, hasStarted, isFinished, isWaitingForContinue])
+    }, [stepIndex, currentStep, recipe])
 
     const handleStepComplete = () => {
-        // Only play notification if step had a timer and not muted
+        if (!currentStep) return
+
         if (currentStep.time !== undefined && !isMuted) {
             playNotify()
         }
@@ -88,6 +70,94 @@ export function BrewView() {
             setIsFinished(true)
         }
     }
+
+    // Timer Logic (Timestamp based)
+    useEffect(() => {
+        if (!hasStarted || isPaused || isFinished || isWaitingForContinue || !recipe) {
+            return
+        }
+
+        // If we just started/resumed and have no deadline, set it
+        if (!deadline && timeLeft > 0) {
+            setDeadline(Date.now() + timeLeft * 1000)
+            return
+        }
+
+        const interval = setInterval(() => {
+            if (!deadline) return
+
+            const now = Date.now()
+            const remaining = Math.ceil((deadline - now) / 1000)
+
+            if (remaining <= 0) {
+                setTimeLeft(0)
+                handleStepComplete() // This will update stepIndex, triggering the other effect
+            } else {
+                setTimeLeft(remaining)
+            }
+        }, 200)
+
+        return () => clearInterval(interval)
+    }, [deadline, timeLeft, isPaused, hasStarted, isFinished, isWaitingForContinue, recipe]) // Lint warning ignored for handleStepComplete
+
+    // Native Integration
+    useEffect(() => {
+        if (!hasStarted || isFinished || !recipe || !currentStep) return;
+
+        const updateNativeState = async () => {
+             if (currentStep && currentStep.time) {
+                 await native.cancelNotifications();
+                 await native.scheduleNotification(
+                     "Step Complete",
+                     `Finished: ${currentStep.type}`,
+                     currentStep.time
+                 );
+
+                 if (stepIndex === 0) {
+                     await native.startActivity(
+                         recipe.title,
+                         currentStep.type,
+                         currentStep.time,
+                         stepIndex + 1,
+                         totalSteps
+                     );
+                 } else {
+                     await native.updateActivity(
+                         currentStep.type,
+                         currentStep.time,
+                         stepIndex + 1
+                     );
+                 }
+             } else {
+                 await native.cancelNotifications();
+                 await native.updateActivity(
+                    "Waiting: " + currentStep.type,
+                    0,
+                    stepIndex + 1
+                 );
+             }
+        };
+
+        updateNativeState();
+
+    }, [stepIndex, hasStarted, isFinished, recipe, currentStep]);
+
+    // Cleanup Activity
+    useEffect(() => {
+        if (isFinished) {
+            native.endActivity();
+            native.cancelNotifications();
+        }
+    }, [isFinished]);
+
+    // Handle Pause/Resume for Notifications
+    useEffect(() => {
+        if (isPaused) {
+            native.cancelNotifications();
+        } else if (hasStarted && !isFinished && !isWaitingForContinue && timeLeft > 0 && currentStep) {
+            native.scheduleNotification("Step Complete", `Finished: ${currentStep.type}`, timeLeft);
+        }
+    }, [isPaused]);
 
     const toggleMute = () => {
         const newMuted = !isMuted
@@ -100,9 +170,20 @@ export function BrewView() {
         handleStepComplete()
     }
 
-    const togglePause = () => setIsPaused(!isPaused)
+    const togglePause = () => {
+        if (!isPaused) {
+            // Pausing
+            setDeadline(null)
+            setIsPaused(true)
+        } else {
+            // Resuming - setDeadline will happen in effect or we can do it here?
+            // Effect handles it: if (!deadline && timeLeft > 0) setDeadline...
+            setIsPaused(false)
+        }
+    }
 
     const skipStep = () => {
+        native.cancelNotifications();
         if (stepIndex < totalSteps - 1) {
             setStepIndex((prev) => prev + 1)
         } else {
@@ -110,11 +191,22 @@ export function BrewView() {
         }
     }
 
-    // Progress calc: Count down
-    // For pause steps (no time), show 0% progress
+    if (!recipe || !currentStep) {
+        if (isFinished && recipe) {
+             // Fallthrough
+        } else {
+            return (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+                    <p>Error: No recipe selected</p>
+                    <Button onClick={() => setView('home')}>Go Home</Button>
+                </div>
+            )
+        }
+    }
+
     const progress = currentStep && currentStep.time ? ((currentStep.time - timeLeft) / currentStep.time) * 100 : 0
 
-    if (isFinished) {
+    if (isFinished && recipe) {
         return (
             <div className="flex flex-col items-center justify-center h-full p-8 space-y-8 animate-in fade-in zoom-in duration-500">
                 <div className="rounded-full bg-primary/10 p-8">
@@ -128,6 +220,8 @@ export function BrewView() {
             </div>
         )
     }
+
+    if (!recipe || !currentStep) return null;
 
     return (
         <div className="flex flex-col h-full bg-background relative overflow-hidden">
