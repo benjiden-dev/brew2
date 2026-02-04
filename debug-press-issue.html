@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug brew2 - Check for Press Option</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        button { padding: 10px; margin: 10px 0; cursor: pointer; }
+        pre { background: #000; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug brew2 "Press" Option</h1>
+
+    <h2>Step 1: Clear Everything</h2>
+    <button onclick="clearEverything()">Clear Service Worker, Cache & Storage</button>
+    <pre id="clearResult"></pre>
+
+    <h2>Step 2: Check localStorage Data</h2>
+    <button onclick="checkStorage()">Check Stored Recipes</button>
+    <pre id="storageResult"></pre>
+
+    <h2>Step 3: Instructions</h2>
+    <div id="instructions">
+        <p class="warning">After clearing, you need to:</p>
+        <ol>
+            <li>Close ALL tabs with brew2 open</li>
+            <li>Open a NEW incognito/private window</li>
+            <li>Go to: <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></li>
+            <li>Click the + button (top right)</li>
+            <li>Scroll to "Brewing Steps"</li>
+            <li>Click "Add Step"</li>
+            <li>Click the "Action" dropdown</li>
+            <li>Look for "Press" option</li>
+        </ol>
+    </div>
+
+    <script>
+        async function clearEverything() {
+            const result = document.getElementById('clearResult');
+            result.innerHTML = 'Clearing...\n';
+
+            // Unregister service workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    result.innerHTML += '✅ Service worker unregistered\n';
+                }
+            }
+
+            // Clear all caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                for (let cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    result.innerHTML += `✅ Cache deleted: ${cacheName}\n`;
+                }
+            }
+
+            // Clear localStorage
+            const recipeStorage = localStorage.getItem('brew-recipe-storage-v2');
+            if (recipeStorage) {
+                localStorage.clear();
+                result.innerHTML += '✅ localStorage cleared\n';
+            }
+
+            // Clear sessionStorage
+            sessionStorage.clear();
+            result.innerHTML += '✅ sessionStorage cleared\n';
+
+            result.innerHTML += '\n✨ EVERYTHING CLEARED!\n';
+            result.innerHTML += '⚠️  Now close ALL tabs and open in NEW INCOGNITO window\n';
+            result.innerHTML += '🔗 http://localhost:5173\n';
+        }
+
+        function checkStorage() {
+            const result = document.getElementById('storageResult');
+
+            // Check recipe storage
+            const recipeStorage = localStorage.getItem('brew-recipe-storage-v2');
+            if (recipeStorage) {
+                try {
+                    const data = JSON.parse(recipeStorage);
+                    result.innerHTML = 'Found stored data:\n\n';
+                    result.innerHTML += JSON.stringify(data, null, 2);
+
+                    // Check if any recipes have 'press' steps
+                    if (data.state?.recipes) {
+                        const hasPress = data.state.recipes.some(r =>
+                            r.steps?.some(s => s.type === 'press')
+                        );
+                        result.innerHTML += `\n\n${hasPress ? '✅' : '❌'} Found recipes with "press" steps: ${hasPress}\n`;
+                    }
+                } catch (e) {
+                    result.innerHTML = '❌ Error parsing storage: ' + e.message;
+                }
+            } else {
+                result.innerHTML = '⚠️  No stored recipes found\n';
+            }
+
+            // List all localStorage keys
+            result.innerHTML += '\n\nAll localStorage keys:\n';
+            for (let i = 0; i < localStorage.length; i++) {
+                result.innerHTML += `- ${localStorage.key(i)}\n`;
+            }
+        }
+    </script>
+</body>
+</html>

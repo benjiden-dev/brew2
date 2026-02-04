@@ -4,7 +4,7 @@ import { useUiStore } from "@/stores/uiStore"
 import { useBrewAudio, useWakeLock } from "@/hooks/useBrewCapabilities"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
-import { ArrowLeft, Play, Pause, SkipForward, CheckCircle } from "lucide-react"
+import { ArrowLeft, Play, Pause, SkipForward, CheckCircle, Volume2, VolumeX } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 export function BrewView() {
@@ -20,6 +20,11 @@ export function BrewView() {
     const [isPaused, setIsPaused] = useState(false)
     const [hasStarted, setHasStarted] = useState(false)
     const [isFinished, setIsFinished] = useState(false)
+    const [isWaitingForContinue, setIsWaitingForContinue] = useState(false)
+    const [isMuted, setIsMuted] = useState(() => {
+        const stored = localStorage.getItem('brew-audio-muted')
+        return stored === 'true'
+    })
 
     const timerRef = useRef<number | null>(null)
 
@@ -42,15 +47,21 @@ export function BrewView() {
             setIsFinished(true)
             return
         }
-        // Only set time if we haven't started this step yet or if we just switched to it
-        // Simpler: Just reset time left when stepIndex changes
-        setTimeLeft(currentStep.time)
-        setIsPaused(false)
-    }, [stepIndex, currentStep]) // Dependency on currentStep object might be tricky if it changes ref, but from store it should be stable enough
+
+        // Check if this is a pause step (no time)
+        if (currentStep.time === undefined) {
+            setIsWaitingForContinue(true)
+            setIsPaused(false)
+        } else {
+            setTimeLeft(currentStep.time)
+            setIsPaused(false)
+            setIsWaitingForContinue(false)
+        }
+    }, [stepIndex, currentStep])
 
     // Timer Logic
     useEffect(() => {
-        if (!hasStarted || isPaused || isFinished) return
+        if (!hasStarted || isPaused || isFinished || isWaitingForContinue) return
 
         if (timeLeft > 0) {
             timerRef.current = window.setTimeout(() => {
@@ -63,15 +74,30 @@ export function BrewView() {
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current)
         }
-    }, [timeLeft, isPaused, hasStarted, isFinished])
+    }, [timeLeft, isPaused, hasStarted, isFinished, isWaitingForContinue])
 
     const handleStepComplete = () => {
-        playNotify()
+        // Only play notification if step had a timer and not muted
+        if (currentStep.time !== undefined && !isMuted) {
+            playNotify()
+        }
+
         if (stepIndex < totalSteps - 1) {
             setStepIndex((prev) => prev + 1)
         } else {
             setIsFinished(true)
         }
+    }
+
+    const toggleMute = () => {
+        const newMuted = !isMuted
+        setIsMuted(newMuted)
+        localStorage.setItem('brew-audio-muted', String(newMuted))
+    }
+
+    const handleContinue = () => {
+        setIsWaitingForContinue(false)
+        handleStepComplete()
     }
 
     const togglePause = () => setIsPaused(!isPaused)
@@ -85,10 +111,8 @@ export function BrewView() {
     }
 
     // Progress calc: Count down
-    // 0s elapsed -> progress 0% ? Or usage of ring?
-    // Let's say ring fills up or empties. 
-    // "Emptying" visually matches "time running out".
-    const progress = currentStep ? ((currentStep.time - timeLeft) / currentStep.time) * 100 : 100
+    // For pause steps (no time), show 0% progress
+    const progress = currentStep && currentStep.time ? ((currentStep.time - timeLeft) / currentStep.time) * 100 : 0
 
     if (isFinished) {
         return (
@@ -118,7 +142,12 @@ export function BrewView() {
                         <p className="text-xs text-muted-foreground">Step {stepIndex + 1} of {totalSteps}</p>
                     </div>
                 </div>
-                <ModeToggle />
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={toggleMute}>
+                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </Button>
+                    <ModeToggle />
+                </div>
             </header>
 
             {/* Main Content */}
@@ -132,6 +161,13 @@ export function BrewView() {
                         >
                             <Play className="w-16 h-16 ml-2 text-primary" />
                             <span className="mt-4 font-semibold text-lg">Tap to Start</span>
+                        </div>
+                    ) : isWaitingForContinue ? (
+                        <div className="w-64 h-64 md:w-80 md:h-80 rounded-full border-4 border-muted flex flex-col items-center justify-center">
+                            <div className="text-center space-y-4">
+                                <p className="text-2xl font-bold text-primary">PAUSED</p>
+                                <p className="text-sm text-muted-foreground px-8">Complete this step, then continue when ready</p>
+                            </div>
                         </div>
                     ) : (
                         <CircularProgress
@@ -151,7 +187,9 @@ export function BrewView() {
                         exit={{ opacity: 0, y: -20 }}
                         className="text-center space-y-2 max-w-md w-full"
                     >
-                        <h3 className="text-3xl font-bold capitalize text-primary">{currentStep.type}</h3>
+                        <h3 className="text-3xl font-bold capitalize text-primary">
+                            {currentStep.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        </h3>
                         {currentStep.amount && (
                             <p className="text-2xl font-medium">{currentStep.amount}g</p>
                         )}
@@ -168,34 +206,50 @@ export function BrewView() {
                     <div className="bg-secondary/50 rounded-lg p-4 flex items-center justify-between border border-border/50">
                         <span className="text-sm font-medium text-muted-foreground">Up Next:</span>
                         <div className="text-sm font-semibold capitalize flex items-center gap-2">
-                            {nextStep.type}
-                            {nextStep.amount && ` · ${nextStep.amount}g`}
-                            <span className="bg-background px-2 py-0.5 rounded text-xs text-muted-foreground border">{formatTime(nextStep.time)}</span>
+                            {nextStep.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                            {nextStep.amount !== undefined && ` · ${nextStep.amount}g`}
+                            <span className="bg-background px-2 py-0.5 rounded text-xs text-muted-foreground border">
+                                {nextStep.time !== undefined ? formatTime(nextStep.time) : 'Pause'}
+                            </span>
                         </div>
                     </div>
                 )}
 
                 {hasStarted && (
-                    <div className="grid grid-cols-2 gap-4">
-                        <Button
-                            variant={isPaused ? "default" : "secondary"}
-                            size="lg"
-                            className="h-16 text-lg"
-                            onClick={togglePause}
-                        >
-                            {isPaused ? <Play className="mr-2 h-6 w-6" /> : <Pause className="mr-2 h-6 w-6" />}
-                            {isPaused ? "Resume" : "Pause"}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="h-16 text-lg"
-                            onClick={skipStep}
-                        >
-                            <SkipForward className="mr-2 h-6 w-6" />
-                            Skip
-                        </Button>
-                    </div>
+                    isWaitingForContinue ? (
+                        <div className="grid grid-cols-2 gap-4">
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                className="col-span-2 h-16 text-lg"
+                                onClick={handleContinue}
+                            >
+                                <Play className="mr-2 h-6 w-6" />
+                                Continue
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                            <Button
+                                variant={isPaused ? "default" : "secondary"}
+                                size="lg"
+                                className="h-16 text-lg"
+                                onClick={togglePause}
+                            >
+                                {isPaused ? <Play className="mr-2 h-6 w-6" /> : <Pause className="mr-2 h-6 w-6" />}
+                                {isPaused ? "Resume" : "Pause"}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="lg"
+                                className="h-16 text-lg"
+                                onClick={skipStep}
+                            >
+                                <SkipForward className="mr-2 h-6 w-6" />
+                                Skip
+                            </Button>
+                        </div>
+                    )
                 )}
             </footer>
         </div>
@@ -257,6 +311,13 @@ function getDefaultInstruction(type: string, amount?: number) {
         case 'swirl': return 'Gently swirl the brewer.'
         case 'stir': return 'Stir the grounds.'
         case 'press': return 'Press down the plunger gently.'
-        default: return 'Follow the step instructions.'
+        case 'place-plunger': return 'Flip the Aeropress and place the plunger on top.'
+        case 'add': return 'Add coffee grounds to the brewer.'
+        case 'filter': return 'Rinse the paper filter with hot water.'
+        default: {
+            // For custom actions, provide a generic instruction
+            const actionName = type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+            return `Complete the ${actionName} step.`
+        }
     }
 }

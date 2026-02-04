@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react"
 import { Share, SquarePlus } from "lucide-react"
 import {
   Drawer,
@@ -11,13 +11,20 @@ import {
 import { Button } from "@/components/ui/button"
 import { useIosInstallPrompt } from "@/hooks/useIosInstallPrompt"
 
-export function IosInstallPrompt() {
+export interface IosInstallPromptHandle {
+  open: () => void
+}
+
+export const IosInstallPrompt = forwardRef<IosInstallPromptHandle>((_, ref) => {
   const [open, setOpen] = useState(false)
   const { shouldShow } = useIosInstallPrompt()
 
-  // We need to listen to the hook's shouldShow, but also manage our own 'open' state
-  // to avoid it reopening immediately if we just closed it without "dismissing" (though now we strictly dismiss or snooze)
-  
+  // Expose open method to parent components
+  useImperativeHandle(ref, () => ({
+    open: () => setOpen(true)
+  }))
+
+  // Auto-open on iOS when conditions are met
   useEffect(() => {
     if (shouldShow) {
       const timer = setTimeout(() => setOpen(true), 2000)
@@ -28,15 +35,12 @@ export function IosInstallPrompt() {
   const handleDismiss = () => {
     localStorage.setItem("ios-install-prompt-v2", "true")
     setOpen(false)
-    // We don't force a re-render of the hook here, but next load it will be respected
   }
 
   const handleSnooze = () => {
     sessionStorage.setItem("ios-install-prompt-snoozed", "true")
     setOpen(false)
   }
-
-  if (!open) return null
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -59,15 +63,15 @@ export function IosInstallPrompt() {
             </div>
           </div>
           <DrawerFooter className="pt-2 flex-col gap-2">
-            <Button onClick={handleDismiss} variant="outline" className="h-9 text-xs">
-              Don't Remind Me Again
+            <Button onClick={handleSnooze} variant="outline" className="h-9 text-xs">
+              Close
             </Button>
-            <Button onClick={handleSnooze} variant="ghost" className="h-9 text-sm text-muted-foreground">
-              Maybe later
+            <Button onClick={handleDismiss} variant="ghost" className="h-9 text-sm text-muted-foreground">
+              Don't show again
             </Button>
           </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>
   )
-}
+})

@@ -9,6 +9,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
       includeAssets: ['favicon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'icon.svg', 'notify.wav'],
       manifest: {
         name: 'brew2',
