@@ -60,7 +60,7 @@ export const native = {
                 notifications: [{
                     title,
                     body,
-                    id: 1, // Use a constant ID for the step timer notification
+                    id: Math.floor(Math.random() * 100000),
                     schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
                     sound: 'notify.wav', // Ensure this file is in the App bundle
                 }]

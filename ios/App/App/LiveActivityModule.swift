@@ -6,7 +6,7 @@ import ActivityKit
 @objc(LiveActivityModule)
 public class LiveActivityModule: CAPPlugin {
 
-    var activity: Activity<BrewAttributes>?
+    private var activity: Activity<BrewAttributes>?
 
     @objc func startActivity(_ call: CAPPluginCall) {
         guard let recipeName = call.getString("recipeName"),
