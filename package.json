@@ -50,5 +50,10 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
+  },
+  "overrides": {
+    "workbox-build": {
+      "lodash": "https://npm.aikido.io/1e09823536068483b6b0d/lodash@4.17.23-aikido.2"
+    }
   }
 }
