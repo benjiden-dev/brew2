@@ -1,6 +1,186 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --color-bright_snow-100: #29323a;
+  --color-bright_snow-200: #536475;
+  --color-bright_snow-300: #8496a8;
+  --color-bright_snow-400: #bfc8d1;
+  --color-bright_snow-500: #f8f9fa;
+  --color-bright_snow-600: #fafbfc;
+  --color-bright_snow-700: #fbfcfc;
+  --color-bright_snow-800: #fdfdfd;
+  --color-bright_snow-900: #fefefe;
+  --color-bright_snow: #f8f9fa;
+
+  --color-platinum-100: #282f37;
+  --color-platinum-200: #505f6e;
+  --color-platinum-300: #7c8ea0;
+  --color-platinum-400: #b3bec8;
+  --color-platinum-500: #e9ecef;
+  --color-platinum-600: #eef1f3;
+  --color-platinum-700: #f3f4f6;
+  --color-platinum-800: #f7f8f9;
+  --color-platinum-900: #fbfbfc;
+  --color-platinum: #e9ecef;
+
+  --color-alabaster_grey-100: #272d34;
+  --color-alabaster_grey-200: #4e5b67;
+  --color-alabaster_grey-300: #788899;
+  --color-alabaster_grey-400: #abb6c0;
+  --color-alabaster_grey-500: #dee2e6;
+  --color-alabaster_grey-600: #e5e9ec;
+  --color-alabaster_grey-700: #eceef1;
+  --color-alabaster_grey-800: #f2f4f5;
+  --color-alabaster_grey-900: #f9f9fa;
+  --color-alabaster_grey: #dee2e6;
+
+  --color-pale_slate-100: #242a30;
+  --color-pale_slate-200: #495561;
+  --color-pale_slate-300: #6d7f91;
+  --color-pale_slate-400: #9da9b5;
+  --color-pale_slate-500: #ced4da;
+  --color-pale_slate-600: #d7dce1;
+  --color-pale_slate-700: #e1e5e9;
+  --color-pale_slate-800: #ebeef0;
+  --color-pale_slate-900: #f5f6f8;
+  --color-pale_slate: #ced4da;
+
+  --color-slate_grey-100: #161819;
+  --color-slate_grey-200: #2c2f32;
+  --color-slate_grey-300: #41474b;
+  --color-slate_grey-400: #575e64;
+  --color-slate_grey-500: #6c757d;
+  --color-slate_grey-600: #899199;
+  --color-slate_grey-700: #a7adb2;
+  --color-slate_grey-800: #c4c8cc;
+  --color-slate_grey-900: #e2e4e5;
+  --color-slate_grey: #6c757d;
+
+  --color-iron_grey-100: #0e1011;
+  --color-iron_grey-200: #1d2022;
+  --color-iron_grey-300: #2b2f34;
+  --color-iron_grey-400: #3a3f45;
+  --color-iron_grey-500: #495057;
+  --color-iron_grey-600: #68727d;
+  --color-iron_grey-700: #8c959f;
+  --color-iron_grey-800: #b2b9bf;
+  --color-iron_grey-900: #d9dcdf;
+  --color-iron_grey: #495057;
+
+  --color-gunmetal-100: #0b0c0d;
+  --color-gunmetal-200: #15171a;
+  --color-gunmetal-300: #202327;
+  --color-gunmetal-400: #2a2f34;
+  --color-gunmetal-500: #343a40;
+  --color-gunmetal-600: #58626c;
+  --color-gunmetal-700: #7d8995;
+  --color-gunmetal-800: #a9b0b8;
+  --color-gunmetal-900: #d4d8dc;
+  --color-gunmetal: #343a40;
+
+  --color-carbon_black-100: #070808;
+  --color-carbon_black-200: #0e0f11;
+  --color-carbon_black-300: #141719;
+  --color-carbon_black-400: #1b1f22;
+  --color-carbon_black-500: #212529;
+  --color-carbon_black-600: #49525b;
+  --color-carbon_black-700: #6f7d8b;
+  --color-carbon_black-800: #9fa8b2;
+  --color-carbon_black-900: #cfd4d8;
+  --color-carbon_black: #212529;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes caret-blink {
+    0%,
+    70%,
+    100% {
+      opacity: 1;
+    }
+    20%,
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @layer base {
   :root {

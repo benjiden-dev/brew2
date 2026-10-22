@@ -226,7 +226,7 @@ export function HomeView({ installPromptRef }: { installPromptRef?: RefObject<Io
                                         onClick={handleDelete}
                                         className={cn(
                                             "absolute inset-0 w-full transition-all duration-300 ease-in-out",
-                                            deleteConfirm ? "opacity-0 translate-x-[-100%] pointer-events-none" : "opacity-100 translate-x-0"
+                                            deleteConfirm ? "opacity-0 -translate-x-full pointer-events-none" : "opacity-100 translate-x-0"
                                         )}
                                     >
                                         <Trash2 className="mr-2 h-4 w-4" />
@@ -313,8 +313,8 @@ function RecipeMetaBadges({ recipe }: { recipe: Recipe }) {
 function RecipeCard({ recipe, onClick, onStart }: { recipe: Recipe; onClick: () => void; onStart: () => void }) {
     return (
         <div onClick={onClick} className="cursor-pointer h-full transition-transform active:scale-[0.98]">
-            <Card className="h-full flex flex-col border-none shadow-xl bg-card/50 backdrop-blur-sm ring-1 ring-border/50 hover:bg-card/80 transition-colors">
-                <CardHeader className="flex-shrink-0">
+            <Card className="h-full flex flex-col border-none shadow-xl bg-card/50 backdrop-blur-xs ring-1 ring-border/50 hover:bg-card/80 transition-colors">
+                <CardHeader className="shrink-0">
                     <CardTitle className="text-2xl leading-tight line-clamp-2 min-h-[2.5em]">{recipe.title}</CardTitle>
                     <CardDescription className="line-clamp-2 min-h-[2.5em]">
                         {recipe.notes || "No notes"}
@@ -324,7 +324,7 @@ function RecipeCard({ recipe, onClick, onStart }: { recipe: Recipe; onClick: () 
                     <RecipeStats recipe={recipe} />
                     <RecipeMetaBadges recipe={recipe} />
                 </CardContent>
-                <CardFooter className="pb-6 pt-0 flex-shrink-0">
+                <CardFooter className="pb-6 pt-0 shrink-0">
                     <Button
                         variant="secondary"
                         className="w-full font-bold"
