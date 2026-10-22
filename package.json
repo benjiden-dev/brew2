@@ -52,6 +52,10 @@
     "vite": "^7.2.4"
   },
   "overrides": {
+    "glob": {
+      "minimatch": "10.2.6"
+    },
+    "ajv@^6": "6.15.0",
     "workbox-build": {
       "lodash": "https://npm.aikido.io/1e09823536068483b6b0d/lodash@4.17.23-aikido.2"
     }
